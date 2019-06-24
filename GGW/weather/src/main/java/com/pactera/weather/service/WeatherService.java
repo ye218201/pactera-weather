@@ -1,13 +1,9 @@
 package com.pactera.weather.service;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,8 +17,8 @@ import com.pactera.weather.util.JsonUtils;
 
 @Service
 public class WeatherService {
-	
-	private static Map<String,String> weatherConditions = new HashMap<>();
+
+	private static Map<String, String> weatherConditions = new HashMap<>();
 	static {
 		weatherConditions.put("xue", "Snow");
 		weatherConditions.put("lei", "Thunder");
@@ -34,31 +30,44 @@ public class WeatherService {
 		weatherConditions.put("yin", "Overcast");
 		weatherConditions.put("qing", "Clear weather");
 	}
-	
+
 	@Value("${cityInfomation}")
 	private String cityInfomation;
 	@Value("${Url}")
 	private String weatherUrl;
 
-	@SuppressWarnings("rawtypes")
-	public List<WeatherEntity> getAllWeatherInformation() {
+	@SuppressWarnings({  "unchecked" })
+	public List<WeatherEntity> getAllWeatherInformation(String cityName) {
 		Map<String, String> cityInformationMap = getCityInformaton();
 		List<WeatherEntity> AllWeatherInformation = new ArrayList<>();
-		for (String key : cityInformationMap.keySet()) {
+		if (!cityName.equals("select all")) {
 			WeatherEntity weatherEntity = new WeatherEntity();
-			String url = weatherUrl+cityInformationMap.get(key);
-			Map <String, String> weatherMap = JsonUtils.readJson2Bean(httpRequest(url), Map.class);
-			weatherEntity.setTemperature(weatherMap.get("tem2")+"°C~"+weatherMap.get("tem1")+"°C");
-			weatherEntity.setUpdated_time(weatherMap.get("update_time"));
-			weatherEntity.setWeather(weatherConditions.get(weatherMap.get("wea_img")));
-			weatherEntity.setWind(weatherMap.get("win_speed").substring(0, weatherMap.get("win_speed").length()-2)+"grade");
-			weatherEntity.setCity(weatherMap.get("cityEn"));
-			AllWeatherInformation.add(weatherEntity);
+			String url = weatherUrl + cityInformationMap.get(cityName);
+			Map<String, String> weatherMap = JsonUtils.readJson2Bean(httpRequest(url), Map.class);
+			AllWeatherInformation.add(mapToEntity(weatherMap, weatherEntity));
+		} else {
+			for (String key : cityInformationMap.keySet()) {
+				WeatherEntity weatherEntity = new WeatherEntity();
+				String url = weatherUrl + cityInformationMap.get(key);
+				Map<String, String> weatherMap = JsonUtils.readJson2Bean(httpRequest(url), Map.class);
+				AllWeatherInformation.add(mapToEntity(weatherMap, weatherEntity));
+			}
 		}
 		return AllWeatherInformation;
-		
+
 	}
 
+	@SuppressWarnings("unchecked")
+	public List<String> getCityName() {
+		Map<String, String> cityInformationMap = getCityInformaton();
+		List<String> cityName = new ArrayList<>();
+		for (String key : cityInformationMap.keySet()) {
+			cityName.add(key);
+		}
+		return cityName;
+	}
+
+	@SuppressWarnings("rawtypes")
 	private Map getCityInformaton() {
 		Map<String, String> cityInformationMap = new HashMap<>();
 		String cityNameAndCityId[] = cityInfomation.split(",");
@@ -97,5 +106,14 @@ public class WeatherService {
 			e.printStackTrace();
 		}
 		return buffer.toString();
+	}
+
+	private WeatherEntity mapToEntity(Map<String, String> weatherMap, WeatherEntity weatherEntity) {
+		weatherEntity.setTemperature(weatherMap.get("tem2") + "°C~" + weatherMap.get("tem1") + "°C");
+		weatherEntity.setUpdated_time(weatherMap.get("update_time"));
+		weatherEntity.setWeather(weatherConditions.get(weatherMap.get("wea_img")));
+		weatherEntity.setWind(weatherMap.get("win_speed").substring(0, weatherMap.get("win_speed").length() - 1) + "grade");
+		weatherEntity.setCity(weatherMap.get("cityEn"));
+		return weatherEntity;
 	}
 }

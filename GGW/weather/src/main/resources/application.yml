@@ -2,5 +2,14 @@ cityInfomation:
    "Melbourne:601060101,Wollongong:601722100,Sydney:601020101"
 Url:
    "https://www.tianqiapi.com/api/?version=v51&appid=1001&appsecret=1002&cityid="
- 
-  
+spring:
+  freemarker:
+    suffix: .html
+    template-loader-path: classpath:/templates/
+    charset: UTF-8
+    cache: false
+    request-context-attribute: request
+  resources:
+    static-locations: classpath:/static/
+  mvc:
+    static-path-pattern: /static/**
