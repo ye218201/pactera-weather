@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Search Weather</title>
+<script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+</head>
+<body>
+	<select id="city">
+		<option>select all</option>
+		<#list cityName as item> 
+		<option value="${item}">${item}</option>
+		</#list>
+	</select>
+	
+</body>
+<script type="text/javascript">
+var path = "${path}";
+
+$("#city").change(function(){
+	$("table").remove()
+	var cityNane = $(this).children('option:selected').val();
+	$.ajax({ 
+		url: path+"search/"+cityNane,
+		dataType:"json",
+		type:"GET",
+		success: function(data){
+			console.log(data)
+        	for(var i= 0 ;i<data.length;i++){
+        		$("#city").after("<table class='dataList'><tr><td>City</td><td>"+data[i].city+"</td></tr>"
+        						+"<tr><td>Temperature</td><td>"+data[i].temperature+"</td></tr>"
+        						+"<tr><td>UpdatedTime</td><td>"+data[i].updated_time+"</td></tr>"
+        						+"<tr><td>Weather</td><td>"+data[i].weather+"</td></tr>"
+        						+"<tr><td>Wind</td><td>"+data[i].wind+"</td></tr>"
+        						+"</table>"
+        						)
+        	}
+      }});
+})
+</script>
+</html>
